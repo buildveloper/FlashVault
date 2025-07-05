@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 
+// Type definition for a loan log
 type Loan = {
   user_address: string;
   amount: number;
@@ -12,7 +13,7 @@ function App() {
   const [logs, setLogs] = useState<Loan[]>([]);
   const [isSmart, setIsSmart] = useState(false);
 
-
+  // Fetch existing flash loan records from Supabase
   const fetchLogs = async () => {
     const { data, error } = await supabase
       .from('flashloans')
@@ -27,13 +28,28 @@ function App() {
     }
   };
 
+  // Trigger a new flash loan record (simulated)
   const triggerFlashLoan = async () => {
-    const entry = {
-      user_address: isSmart ? 'smart_0x1234...' : '0x1234...',
-      amount: 1.2,
-      smart: isSmart
+    // Generate random wallet or smart contract address
+    const generateRandomAddress = () => {
+      const prefix = isSmart ? 'smart_0x' : '0x';
+      const chars = 'abcdef0123456789';
+      let addr = '';
+      for (let i = 0; i < 8; i++) {
+        addr += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return prefix + addr;
     };
 
+    // Build the entry dynamically
+    const entry = {
+      user_address: generateRandomAddress(),
+      amount: parseFloat((Math.random() * 10 + 0.1).toFixed(2)), // random ETH between 0.1–10
+      smart: isSmart,
+      time: new Date().toISOString() // ⏰ required by Supabase (no default on DB)
+    };
+
+    // Save entry to Supabase
     const { error } = await supabase.from('flashloans').insert([entry]);
 
     if (error) {
@@ -41,15 +57,14 @@ function App() {
       alert('Insert failed: ' + error.message);
     } else {
       alert('✅ Flash loan triggered!');
-      fetchLogs();
+      fetchLogs(); // Refresh the logs
     }
   };
 
+  // Fetch logs on component mount
   useEffect(() => {
     fetchLogs();
   }, []);
-
-
 
   return (
     <div
@@ -72,8 +87,9 @@ function App() {
           boxShadow: '0 0 10px rgba(0,0,0,0.1)',
         }}
       >
-        <h2 style={{ marginBottom: '20px' }}> FlashVault Dashboard</h2>
+        <h2 style={{ marginBottom: '20px' }}>⚡ FlashVault Dashboard</h2>
 
+        {/* Smart Wallet Toggle */}
         <label style={{ display: 'block', marginBottom: '20px' }}>
           <input
             type="checkbox"
@@ -84,6 +100,7 @@ function App() {
           Use Smart Account
         </label>
 
+        {/* Trigger Button */}
         <button
           onClick={triggerFlashLoan}
           style={{
@@ -100,7 +117,8 @@ function App() {
           Run Flash Loan
         </button>
 
-        <h3 style={{ marginBottom: '10px' }}>Flash Loan Logs</h3>
+        {/* Flash Loan Logs */}
+        <h3 style={{ marginBottom: '10px' }}>📜 Flash Loan Logs</h3>
         {logs.length === 0 ? (
           <p>No flash loans yet.</p>
         ) : (
