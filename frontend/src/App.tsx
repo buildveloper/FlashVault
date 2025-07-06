@@ -87,7 +87,7 @@ function App() {
           boxShadow: '0 0 10px rgba(0,0,0,0.1)',
         }}
       >
-        <h2 style={{ marginBottom: '20px' }}>⚡ FlashVault Dashboard</h2>
+        <h2 style={{ marginBottom: '20px' }}>FlashVault Dashboard</h2>
 
         {/* Smart Wallet Toggle */}
         <label style={{ display: 'block', marginBottom: '20px' }}>
@@ -125,7 +125,7 @@ function App() {
           <ul>
             {logs.map((log, i) => (
               <li key={i} style={{ marginBottom: '8px' }}>
-                {log.smart ? '🧠 Smart' : '👤 Wallet'} — {log.user_address} borrowed {log.amount} ETH at{' '}
+                {log.smart ? ' Smart' : 'Wallet'} — {log.user_address} borrowed {log.amount} ETH at{' '}
                 {new Date(log.time).toLocaleString()}
               </li>
             ))}
