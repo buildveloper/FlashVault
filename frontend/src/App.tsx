@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 
-// Type definition for a loan log
+// Type for a flash loan entry
 type Loan = {
   user_address: string;
   amount: number;
@@ -9,11 +9,11 @@ type Loan = {
   smart: boolean;
 };
 
-function App() {
+const App: React.FC = () => {
   const [logs, setLogs] = useState<Loan[]>([]);
   const [isSmart, setIsSmart] = useState(false);
 
-  // Fetch existing flash loan records from Supabase
+  // Fetch all flash loan logs
   const fetchLogs = async () => {
     const { data, error } = await supabase
       .from('flashloans')
@@ -21,53 +21,46 @@ function App() {
       .order('time', { ascending: false });
 
     if (error) {
-      console.error('❌ Fetch Error:', error.message);
+      console.error('Fetch error:', error.message);
     } else {
-      console.log('✅ Fetched logs:', data);
       setLogs(data || []);
     }
   };
 
-  // Trigger a new flash loan record (simulated)
+  // Trigger a simulated flash loan
   const triggerFlashLoan = async () => {
-    // Generate random wallet or smart contract address
     const generateRandomAddress = () => {
       const prefix = isSmart ? 'smart_0x' : '0x';
       const chars = 'abcdef0123456789';
-      let addr = '';
-      for (let i = 0; i < 8; i++) {
-        addr += chars[Math.floor(Math.random() * chars.length)];
-      }
-      return prefix + addr;
+      return prefix + Array.from({ length: 8 }, () =>
+        chars[Math.floor(Math.random() * chars.length)]
+      ).join('');
     };
 
-    // Build the entry dynamically
     const entry = {
       user_address: generateRandomAddress(),
-      amount: parseFloat((Math.random() * 10 + 0.1).toFixed(2)), // random ETH between 0.1–10
+      amount: parseFloat((Math.random() * 10 + 0.1).toFixed(2)), // 0.1 – 10 ETH
       smart: isSmart,
-      time: new Date().toISOString() // ⏰ required by Supabase (no default on DB)
+      time: new Date().toISOString(),
     };
 
-    // Save entry to Supabase
     const { error } = await supabase.from('flashloans').insert([entry]);
 
     if (error) {
-      console.error('❌ Insert Error:', error.message);
       alert('Insert failed: ' + error.message);
+      console.error('Insert error:', error.message);
     } else {
-      alert('✅ Flash loan triggered!');
-      fetchLogs(); // Refresh the logs
+      alert('Flash loan triggered successfully');
+      fetchLogs();
     }
   };
 
-  // Fetch logs on component mount
   useEffect(() => {
     fetchLogs();
   }, []);
 
   return (
-    <div
+    <main
       style={{
         display: 'flex',
         justifyContent: 'center',
@@ -75,9 +68,11 @@ function App() {
         minHeight: '100vh',
         background: '#f5f5f5',
         padding: '40px',
+        fontFamily: 'Arial, sans-serif',
+        color: '#111',
       }}
     >
-      <div
+      <section
         style={{
           width: '100%',
           maxWidth: '600px',
@@ -87,10 +82,11 @@ function App() {
           boxShadow: '0 0 10px rgba(0,0,0,0.1)',
         }}
       >
-        <h2 style={{ marginBottom: '20px' }}>FlashVault Dashboard</h2>
+        <h2 style={{ fontSize: '24px', marginBottom: '20px', fontWeight: 'bold' }}>
+          FlashVault Dashboard
+        </h2>
 
-        {/* Smart Wallet Toggle */}
-        <label style={{ display: 'block', marginBottom: '20px' }}>
+        <label style={{ display: 'block', marginBottom: '20px', fontSize: '16px' }}>
           <input
             type="checkbox"
             checked={isSmart}
@@ -100,7 +96,6 @@ function App() {
           Use Smart Account
         </label>
 
-        {/* Trigger Button */}
         <button
           onClick={triggerFlashLoan}
           style={{
@@ -111,29 +106,32 @@ function App() {
             border: 'none',
             borderRadius: '8px',
             fontWeight: 'bold',
+            fontSize: '15px',
             cursor: 'pointer',
           }}
         >
           Run Flash Loan
         </button>
 
-        {/* Flash Loan Logs */}
-        <h3 style={{ marginBottom: '10px' }}>📜 Flash Loan Logs</h3>
+        <h3 style={{ marginBottom: '10px', fontSize: '18px', fontWeight: '600' }}>
+          Flash Loan Logs
+        </h3>
+
         {logs.length === 0 ? (
           <p>No flash loans yet.</p>
         ) : (
-          <ul>
+          <ul style={{ paddingLeft: '20px' }}>
             {logs.map((log, i) => (
-              <li key={i} style={{ marginBottom: '8px' }}>
-                {log.smart ? ' Smart' : 'Wallet'} — {log.user_address} borrowed {log.amount} ETH at{' '}
-                {new Date(log.time).toLocaleString()}
+              <li key={i} style={{ marginBottom: '8px', fontSize: '15px' }}>
+                {log.smart ? 'Smart Account' : 'Wallet'} — {log.user_address} borrowed{' '}
+                {log.amount} ETH at {new Date(log.time).toLocaleString()}
               </li>
             ))}
           </ul>
         )}
-      </div>
-    </div>
+      </section>
+    </main>
   );
-}
+};
 
 export default App;
